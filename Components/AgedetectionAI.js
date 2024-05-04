@@ -1,24 +1,19 @@
-import React, { useEffect, useState } from "react";
-import {
-  StyleSheet,
-  View,
-  Text,
-  Image,
-  ScrollView,
-  Button,
-  Alert,
-  TouchableOpacity,
-} from "react-native";
-import { Camera } from "expo-camera"; // Import de la bibliothèque pour accéder à la caméra sur les appareils mobiles
+import React, { useEffect, useState, useRef } from "react";
+import { StyleSheet, View, Text, TouchableOpacity, Alert } from "react-native";
+import { Camera } from "expo-camera";
+import { encode as base64Encode } from "base-64";
+import { useNavigation } from "@react-navigation/native"; // Import de useNavigation
 
 const HumanPage = () => {
+  const navigation = useNavigation(); // Utilisation de useNavigation
   const [cameraPermission, setCameraPermission] = useState(null);
-  const [cameraType, setCameraType] = useState(Camera.Constants.Type.front); // Choisir le type de caméra (frontale ou arrière)
+  const [cameraType, setCameraType] = useState(Camera.Constants.Type.front);
   const [humanResult, setHumanResult] = useState(null);
+  const cameraRef = useRef(null);
 
   useEffect(() => {
     (async () => {
-      const { status } = await Camera.requestPermissionsAsync(); // Demander la permission d'accès à la caméra
+      const { status } = await Camera.requestPermissionsAsync();
       setCameraPermission(status === "granted");
     })();
   }, []);
@@ -32,9 +27,50 @@ const HumanPage = () => {
   };
 
   const handleHumanDetection = async () => {
-    // Fonction pour détecter les objets, les visages, les corps, les mains et les gestes
-    // Utilisez les fonctions de la bibliothèque appropriée pour effectuer la détection
-    // Mettez à jour l'état humanResult avec les résultats de détection
+    if (cameraRef.current) {
+      try {
+        let photo = await cameraRef.current.takePictureAsync();
+
+        const client_id = "cM1WeOtnhKqMJThjmCFRkBYI";
+        const client_secret =
+          "XXBIyvIkjw9E0PbXwMxdcu7l4aurI3ixrYQHVfPNeRaNiU4d";
+        const base64Credentials = base64Encode(`${client_id}:${client_secret}`);
+
+        const formData = new FormData();
+        formData.append("data", {
+          uri: photo.uri,
+          name: "photo.jpg",
+          type: "image/jpg",
+        });
+
+        const response = await fetch("https://api.everypixel.com/v1/faces", {
+          method: "POST",
+          headers: {
+            Authorization: `Basic ${base64Credentials}`,
+          },
+          body: formData,
+        });
+
+        const data = await response.json();
+
+        if (data.faces && data.faces.length > 0) {
+          const age = parseInt(data.faces[0].age); // Convertir l'âge en entier
+          setHumanResult(`L'âge détecté est : ${age}`);
+
+          // Vérification de l'âge et navigation
+          if (age > 18) {
+            navigation.navigate("Search"); // Naviguer vers la page Search
+          } else {
+            setHumanResult(`Vous ne pouvez pas accedez vu votre age : ${age}`);
+          }
+        } else {
+          setHumanResult("Aucun visage détecté");
+        }
+      } catch (error) {
+        console.error("Erreur lors de la détection humaine:", error);
+        setHumanResult("Erreur lors de la détection humaine");
+      }
+    }
   };
 
   return (
@@ -48,10 +84,10 @@ const HumanPage = () => {
           <Camera
             style={styles.camera}
             type={cameraType}
+            ref={cameraRef}
             onCameraReady={() => Alert.alert("Caméra prête")}
           />
           <View style={styles.buttonContainer}>
-            <Button title="Changer de caméra" onPress={toggleCameraType} />
             <TouchableOpacity
               style={styles.detectButton}
               onPress={handleHumanDetection}
@@ -61,12 +97,11 @@ const HumanPage = () => {
           </View>
         </View>
       )}
-      {/* <ScrollView style={styles.resultContainer}>
-        {humanResult && (
-          // Afficher les résultats de détection
-          // Utilisez les composants appropriés pour afficher les résultats
-        )}
-      </ScrollView> */}
+      {humanResult && (
+        <View style={styles.resultContainer}>
+          <Text>{humanResult}</Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -78,11 +113,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#fff",
   },
-
   cameraContainer: {
     flex: 1,
     width: "100%",
-    aspectRatio: 4 / 3, // Aspect ratio standard de la caméra
+    aspectRatio: 4 / 3,
     justifyContent: "flex-end",
     alignItems: "center",
   },
@@ -91,10 +125,9 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "center",
     alignItems: "center",
     marginBottom: 20,
-    paddingHorizontal: 20,
   },
   detectButton: {
     backgroundColor: "blue",
@@ -107,8 +140,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   resultContainer: {
-    flex: 1,
-    width: "100%",
+    marginTop: 20,
+    alignItems: "center",
   },
 });
 

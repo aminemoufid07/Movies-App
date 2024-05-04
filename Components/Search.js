@@ -26,7 +26,6 @@ const Search = () => {
   const [searchedText, setSearchedText] = useState("");
   const [page, setPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-  const [showSearchButton, setShowSearchButton] = useState(true); // État pour afficher ou masquer le bouton de recherche
 
   const loadFilms = () => {
     if (searchedText.length > 0) {
@@ -45,10 +44,10 @@ const Search = () => {
   };
 
   const searchFilms = () => {
-    setShowSearchButton(false); // Masquer le bouton de recherche lorsque la recherche est effectuée
+    console.log("Search films function called."); // Ajoutez ce console.log pour vérifier l'appel de la fonction
     setPage(0);
     setTotalPages(0);
-    setFilms([]);
+    setFilms([]); // Réinitialiser les films à un tableau vide
     loadFilms();
   };
 
@@ -70,8 +69,9 @@ const Search = () => {
           style={styles.textinput}
           placeholder="Titre du film"
           onChangeText={searchTextInputChanged}
-          onSubmitEditing={searchFilms}
+          onSubmitEditing={searchFilms} // Assurez-vous que cette ligne est correctement définie
         />
+
         <Button title="Rechercher" onPress={searchFilms} />
       </View>
       {/* )} */}
