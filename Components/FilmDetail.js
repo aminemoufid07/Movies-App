@@ -24,7 +24,7 @@ const FilmDetail = ({ route }) => {
           `https://api.themoviedb.org/3/movie/${film.id}?language=en-US&api_key=f73982261ee9d3c0189df360f5aeb20c`
         );
         const data = await response.json();
-        console.log("Film details:", data);
+
         // Traitement des détails du film ici
       } catch (error) {
         console.error("Error fetching videos:", error);
@@ -58,10 +58,6 @@ const FilmDetail = ({ route }) => {
       setPlaying(false);
       Alert.alert("La vidéo est terminée !");
     }
-  };
-
-  const togglePlaying = () => {
-    setPlaying((prev) => !prev);
   };
 
   return (

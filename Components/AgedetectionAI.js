@@ -1,102 +1,96 @@
-import React, { useEffect, useState, useRef } from "react";
-import { StyleSheet, View, Text, TouchableOpacity, Alert } from "react-native";
-import { Camera } from "expo-camera";
+import React, { useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { CameraView, useCameraPermissions } from "expo-camera";
 import { encode as base64Encode } from "base-64";
-import { useNavigation } from "@react-navigation/native"; // Import de useNavigation
+import { useNavigation } from "@react-navigation/native";
 
-const HumanPage = () => {
-  const navigation = useNavigation(); // Utilisation de useNavigation
-  const [cameraPermission, setCameraPermission] = useState(null);
-  const [cameraType, setCameraType] = useState(Camera.Constants.Type.front);
+export default function AgedetectionAI() {
+  const [facing, setFacing] = useState("front"); // Assuming you want to start with the front camera
+  const [permission, requestPermission] = useCameraPermissions();
+  const navigation = useNavigation();
   const [humanResult, setHumanResult] = useState(null);
-  const cameraRef = useRef(null);
 
-  useEffect(() => {
-    (async () => {
-      const { status } = await Camera.requestPermissionsAsync();
-      setCameraPermission(status === "granted");
-    })();
-  }, []);
-
-  const toggleCameraType = () => {
-    setCameraType(
-      cameraType === Camera.Constants.Type.back
-        ? Camera.Constants.Type.front
-        : Camera.Constants.Type.back
-    );
+  const toggleCameraFacing = () => {
+    setFacing((current) => (current === "back" ? "front" : "back"));
   };
 
   const handleHumanDetection = async () => {
-    if (cameraRef.current) {
-      try {
-        let photo = await cameraRef.current.takePictureAsync();
+    if (permission && permission.granted) {
+      const photo = await cameraRef.current.takePictureAsync();
 
-        const client_id = "cM1WeOtnhKqMJThjmCFRkBYI";
-        const client_secret =
-          "XXBIyvIkjw9E0PbXwMxdcu7l4aurI3ixrYQHVfPNeRaNiU4d";
-        const base64Credentials = base64Encode(`${client_id}:${client_secret}`);
+      const client_id = "cM1WeOtnhKqMJThjmCFRkBYI";
+      const client_secret = "XXBIyvIkjw9E0PbXwMxdcu7l4aurI3ixrYQHVfPNeRaNiU4d";
+      const base64Credentials = base64Encode(`${client_id}:${client_secret}`);
 
-        const formData = new FormData();
-        formData.append("data", {
-          uri: photo.uri,
-          name: "photo.jpg",
-          type: "image/jpg",
-        });
+      const formData = new FormData();
+      formData.append("data", {
+        uri: photo.uri,
+        name: "photo.jpg",
+        type: "image/jpg",
+      });
 
-        const response = await fetch("https://api.everypixel.com/v1/faces", {
-          method: "POST",
-          headers: {
-            Authorization: `Basic ${base64Credentials}`,
-          },
-          body: formData,
-        });
+      const response = await fetch("https://api.everypixel.com/v1/faces", {
+        method: "POST",
+        headers: {
+          Authorization: `Basic ${base64Credentials}`,
+        },
+        body: formData,
+      });
 
-        const data = await response.json();
+      const data = await response.json();
 
-        if (data.faces && data.faces.length > 0) {
-          const age = parseInt(data.faces[0].age); // Convertir l'âge en entier
-          setHumanResult(`L'âge détecté est : ${age}`);
+      if (data.faces && data.faces.length > 0) {
+        const age = parseInt(data.faces[0].age);
+        setHumanResult(`L'âge détecté est : ${age}`);
 
-          // Vérification de l'âge et navigation
-          if (age > 18) {
-            navigation.navigate("Search"); // Naviguer vers la page Search
-          } else {
-            setHumanResult(`Vous ne pouvez pas accedez vu votre age : ${age}`);
-          }
+        if (age > 18) {
+          navigation.navigate("Search");
         } else {
-          setHumanResult("Aucun visage détecté");
+          setHumanResult(`Vous ne pouvez pas accéder vu votre âge : ${age}`);
         }
-      } catch (error) {
-        console.error("Erreur lors de la détection humaine:", error);
-        setHumanResult("Erreur lors de la détection humaine");
+      } else {
+        setHumanResult("Aucun visage détecté");
       }
     }
   };
 
+  const cameraRef = React.useRef(null);
+
+  if (!permission) {
+    return <View />;
+  }
+
+  if (!permission.granted) {
+    return (
+      <View style={styles.container}>
+        <Text style={{ textAlign: "center" }}>
+          We need your permission to show the camera
+        </Text>
+        <TouchableOpacity
+          style={styles.permissionButton}
+          onPress={requestPermission}
+        >
+          <Text style={styles.buttonText}>Grant Permission</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      {cameraPermission === null ? (
-        <Text>Demande de permission de la caméra...</Text>
-      ) : cameraPermission === false ? (
-        <Text>La permission de la caméra a été refusée</Text>
-      ) : (
-        <View style={styles.cameraContainer}>
-          <Camera
-            style={styles.camera}
-            type={cameraType}
-            ref={cameraRef}
-            onCameraReady={() => Alert.alert("Caméra prête")}
-          />
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={styles.detectButton}
-              onPress={handleHumanDetection}
-            >
-              <Text style={styles.detectButtonText}>Détecter</Text>
-            </TouchableOpacity>
-          </View>
+      <CameraView ref={cameraRef} style={styles.camera} facing={facing}>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleHumanDetection}
+          >
+            <Text style={styles.buttonText}>Detect Age</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
+            <Text style={styles.buttonText}>Flip Camera</Text>
+          </TouchableOpacity>
         </View>
-      )}
+      </CameraView>
       {humanResult && (
         <View style={styles.resultContainer}>
           <Text>{humanResult}</Text>
@@ -104,45 +98,45 @@ const HumanPage = () => {
       )}
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
     justifyContent: "center",
+    alignItems: "center",
     backgroundColor: "#fff",
   },
-  cameraContainer: {
+  camera: {
     flex: 1,
     width: "100%",
-    aspectRatio: 4 / 3,
-    justifyContent: "flex-end",
-    alignItems: "center",
-  },
-  camera: {
-    ...StyleSheet.absoluteFillObject,
   },
   buttonContainer: {
+    position: "absolute",
+    bottom: 20,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 20,
   },
-  detectButton: {
+  button: {
+    backgroundColor: "rgba(255, 255, 255, 0.5)",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    marginHorizontal: 10,
+  },
+  permissionButton: {
     backgroundColor: "blue",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
   },
-  detectButtonText: {
-    color: "#fff",
-    fontSize: 16,
+  buttonText: {
+    color: "white",
   },
   resultContainer: {
-    marginTop: 20,
+    position: "absolute",
+    top: 20,
     alignItems: "center",
   },
 });
-
-export default HumanPage;

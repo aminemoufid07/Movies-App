@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, createRef } from "react";
 import {
   StyleSheet,
   View,
@@ -7,12 +7,14 @@ import {
   FlatList,
   TouchableOpacity,
   Button,
-  Modal,
+  Pressable,
 } from "react-native";
+import Geolocation from "react-native-geolocation-service";
 import { useNavigation } from "@react-navigation/native";
 import { getImageFromApi } from "../API/TMDBApi";
+import Modal from "react-native-modal";
+//import { Dropdown } from "react-native-element-dropdown"; // Assurez-vous d'avoir installé cette dépendance
 import { Picker } from "@react-native-community/picker";
-
 
 const NowPlayingMoviesPage = () => {
   const [movies, setMovies] = useState([]);
@@ -21,7 +23,9 @@ const NowPlayingMoviesPage = () => {
   const [countries, setCountries] = useState([]);
   const [cities, setCities] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [selectedMovieTitle, setSelectedMovieTitle] = useState("");
   const navigation = useNavigation();
+  const pickerRef = createRef(null);
 
   useEffect(() => {
     const fetchNowPlayingMovies = async () => {
@@ -82,14 +86,15 @@ const NowPlayingMoviesPage = () => {
   };
 
   const handleMoviePress = async (movieTitle) => {
-    setModalVisible({ isVisible: true, movieTitle });
+    setSelectedMovieTitle(movieTitle);
+    setModalVisible(true);
   };
 
   const handleSearch = async () => {
     try {
       const { movieTitle } = modalVisible;
 
-      const searchQuery = ` location of theater movie in ${selectedCountry} ${selectedCity}`;
+      const searchQuery = ` adresses cinema disponibles sur ${selectedCity}`;
       console.log("Search Query:", searchQuery); // Afficher la requête de recherche
       const requestBody = {
         q: searchQuery,
@@ -108,33 +113,37 @@ const NowPlayingMoviesPage = () => {
       const result = await response.json();
       console.log("Raw search result:", result);
 
-      // Filtrer uniquement les adresses dans les snippets
-      const addresses = result.organic
-        .map((item) => {
-          const atIndex = item.snippet.indexOf(" at ");
-          if (atIndex !== -1) {
-            const addressStartIndex = atIndex + 3; // Début de l'adresse après "at"
-            const pointIndex = item.snippet.indexOf(".", addressStartIndex);
-            if (pointIndex !== -1) {
-              return item.snippet.substring(addressStartIndex, pointIndex);
-            }
-          }
-          return null;
-        })
-        .filter((address) => address !== null);
+      // Récupérer les places à partir du résultat JSON
+      const places = result.places;
+      console.log("Places:", places);
 
-      console.log(
-        "Addresses for",
-        selectedCountry,
-        selectedCity,
-        ":",
-        addresses
-      );
-      console.log("Filtered addresses for", movieTitle, ":", addresses);
+      // Récupération automatique des titres et adresses des places
+
+      // Check if places is defined before accessing its properties
+      if (places && places.length > 0) {
+        // If places is defined and not empty
+        placeData = places.map((place) => ({
+          title: place.title,
+          address: place.address,
+        }));
+      } else if (result.knowledgeGraph) {
+        // If places is undefined and knowledgeGraph is defined
+        placeData = [
+          {
+            title: result.knowledgeGraph.title || "Unknown",
+            address: result.knowledgeGraph.attributes.Address || "Unknown",
+          },
+        ];
+      } else {
+        // If both places and knowledgeGraph are undefined
+        placeData = [];
+      }
+
+      console.log("Place data:", placeData);
 
       // Naviguer vers MovieDetailsPage avec le titre du film et les informations des cinémas en paramètres
       navigation.navigate("MovieDetailsPage", {
-        movie: { movietitle: movieTitle, theaters: addresses },
+        movie: { movietitle: movieTitle, theaters: placeData },
       });
 
       setModalVisible(false);
@@ -142,21 +151,73 @@ const NowPlayingMoviesPage = () => {
       console.error("Error fetching movie theaters:", error);
     }
   };
+  // const handleNearbyTheaterSearch = async () => {
+  //   try {
+  //     Geolocation.getCurrentPosition(
+  //       (position) => {
+  //         console.log(position);
+  //         searchNearbyTheaters(
+  //           position.coords.latitude,
+  //           position.coords.longitude
+  //         );
+  //       },
+  //       (error) => {
+  //         console.error("Error handling location permission:", error);
+  //       },
+  //       { enableHighAccuracy: true, timeout: 60000 }
+  //     );
+  //   } catch (error) {
+  //     console.error("Error handling location permission:", error);
+  //   }
+  // };
+
+  // const searchNearbyTheaters = async (latitude, longitude) => {
+  //   try {
+  //     console.log("Latitude:", latitude);
+  //     console.log("Longitude:", longitude);
+
+  //     const apiKey = "AIzaSyBMxEhoXsi6NADSY-yNlubcUg8I1S2wLDg";
+  //     const radius = 125000; // Rayon de recherche en mètres (5 km dans cet exemple)
+  //     const type = "movie_theater"; // Type de lieu recherché (cinéma dans cet exemple)
+
+  //     const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=${radius}&type=${type}&key=${apiKey}`;
+
+  //     const response = await fetch(url);
+  //     const data = await response.json();
+  //     console.log("Data:", data);
+
+  //     if (data.results && data.results.length > 0) {
+  //       const nearestTheater = data.results[0];
+
+  //       // Extraire l'adresse du cinéma le plus proche
+  //       const theaterAddress = nearestTheater.vicinity;
+
+  //       // Construire l'URL Google Maps avec l'adresse du cinéma
+  //       const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+  //         theaterAddress
+  //       )}`;
+
+  //       // Rediriger l'utilisateur vers Google Maps
+  //       window.open(mapsUrl, "_blank");
+  //     } else {
+  //       console.log("Aucun cinéma trouvé à proximité.");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching nearby theaters:", error);
+  //   }
+  // };
 
   return (
     <View style={styles.container}>
       <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => {
-          setModalVisible({ isVisible: false });
-        }}
+        isVisible={modalVisible}
+        onBackdropPress={() => setModalVisible(false)}
       >
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
             <Text style={styles.modalText}>Select a country:</Text>
             <Picker
+              ref={pickerRef}
               selectedValue={selectedCountry}
               style={styles.dropdown}
               onValueChange={(itemValue, itemIndex) => {
@@ -172,6 +233,7 @@ const NowPlayingMoviesPage = () => {
             </Picker>
 
             <Text style={styles.modalText}>Select a city:</Text>
+
             <Picker
               selectedValue={selectedCity}
               style={styles.dropdown}
@@ -185,8 +247,11 @@ const NowPlayingMoviesPage = () => {
                   <Picker.Item key={index} label={city} value={city} />
                 ))}
             </Picker>
-
             <Button title="Search" onPress={handleSearch} />
+            {/* <Button
+              title="Search Nearby Theaters"
+              onPress={handleNearbyTheaterSearch}
+            /> */}
           </View>
         </View>
       </Modal>
@@ -271,10 +336,10 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   dropdown: {
-    width: "100%",
-    height: 40,
-    borderColor: "#ccc",
+    height: 50,
+    width: 200,
     borderWidth: 1,
+    borderColor: "#999",
     marginBottom: 10,
   },
 });
