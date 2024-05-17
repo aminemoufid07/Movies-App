@@ -52,6 +52,32 @@ Pour rechercher des films et afficher des détails et des bandes-annonces, nous 
 
 Pour trouver des cinémas dans une ville choisie, nous utilisons l'API Google Serper pour effectuer des recherches web et afficher les résultats pertinents. Les utilisateurs peuvent ensuite être redirigés vers Google Maps pour obtenir l'itinéraire vers le cinéma choisi.
 
+### Capture d'ecran
+
+![WhatsApp Image 2024-05-17 at 13 22 41_f1892818](https://github.com/killer-beep07/Movies-App/assets/130712993/bce0fd4e-8cf6-4dc4-a778-574599e0ac59)
+![WhatsApp Image 2024-05-17 at 13 33 22_9dd4e8d5](https://github.com/killer-beep07/Movies-App/assets/130712993/c3b1110e-a6e0-4f93-85e3-cac6c6dfe3c1)
+![WhatsApp Image 2024-05-17 at 13 33 22_2aa0d549](https://github.com/killer-beep07/Movies-App/assets/130712993/285d4ed8-f4d0-4de8-a608-1021a5f5f128)
+![WhatsApp Image 2024-05-17 at 13 22 42_a939b062](https://github.com/killer-beep07/Movies-App/assets/130712993/8c94ed25-bb7d-4bfe-b5f3-e62ae3331f3b)
+![WhatsApp Image 2024-05-17 at 13 22 43_9510c37f](https://github.com/killer-beep07/Movies-App/assets/130712993/b2a8870e-e7a3-4d82-aae1-95f9f40e2bdd)
+![WhatsApp Image 2024-05-17 at 13 22 44_215fe3a7](https://github.com/killer-beep07/Movies-App/assets/130712993/13eff8d2-7f83-4ad0-b135-18844449d79d)
+![WhatsApp Image 2024-05-17 at 13 22 44_39daec1f](https://github.com/killer-beep07/Movies-App/assets/130712993/b14e376d-ded6-480b-8bda-0df639be8884)
+![WhatsApp Image 2024-05-17 at 13 22 45_ad905b99](https://github.com/killer-beep07/Movies-App/assets/130712993/3c75e470-539c-43b2-8a3c-50bec35e5cd8)
+![WhatsApp Image 2024-05-17 at 13 22 46_89de8f8d](https://github.com/killer-beep07/Movies-App/assets/130712993/b762a946-f1d8-4db9-ac57-da752c9654b9)
+![WhatsApp Image 2024-05-17 at 13 22 47_d67b2e77](https://github.com/killer-beep07/Movies-App/assets/130712993/78cd6a2f-f18e-44ac-a197-a389b75c832b)
+![WhatsApp Image 2024-05-17 at 13 22 47_eb852884](https://github.com/killer-beep07/Movies-App/assets/130712993/64cd2b96-df69-4e15-9721-180fd125d3de)
+![WhatsApp Image 2024-05-17 at 13 22 47_17f323e7](https://github.com/killer-beep07/Movies-App/assets/130712993/16f61106-eace-4050-8992-d10fb7ced4eb)
+
+
+
+
+
+
+
+
+
+
+
+
 ## Comment Exécuter le Projet
 
 Suivez ces étapes pour exécuter le projet localement :
