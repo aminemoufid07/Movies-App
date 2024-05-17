@@ -8,7 +8,7 @@ Ce projet vise à développer une application mobile permettant aux utilisateurs
 
 - **React Native**: Framework pour le développement d'applications mobiles.
 - **Expo**: Outils et services pour faciliter le développement et le déploiement d'applications React Native.
-- **API Everypixel**: Pour vérifier si l'utilisateur a plus de 18 ans via une photo.
+- **API Everypixel**: Pour vérifier si l'utilisateur a plus de 18 ans via une photo avec IA.
 - **API The Movie Database (TMDb)**: Pour rechercher des films et obtenir des détails et des bandes-annonces.
 - **API Google Serper**: Pour effectuer des recherches web et trouver des cinémas dans une ville choisie.
 
@@ -23,8 +23,8 @@ Le projet sera organisé de manière à tirer parti de :
 
 ## Fonctionnalités
 
-1. **Vérification de l'âge**:
-   - Utilisation de l'API Everypixel pour vérifier si l'utilisateur a plus de 18 ans via une photo prise avec l'appareil photo du téléphone.
+**Vérification de l'âge avec IA**:
+   - Utilisation de l'API Everypixel pour vérifier si l'utilisateur a plus de 18 ans via une photo prise avec l'appareil photo du téléphone. L'IA analyse la photo pour estimer l'âge de l'utilisateur.
 
 2. **Recherche de films**:
    - Rechercher des films et afficher les détails et la bande-annonce via l'API de The Movie Database (TMDb).
